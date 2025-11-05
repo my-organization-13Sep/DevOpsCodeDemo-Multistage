@@ -1,22 +1,15 @@
 # ---------- Stage 1: Build the WAR using Maven ----------
 FROM maven:3.9.9-eclipse-temurin-17 AS builder
 
-# Set working directory
-#WORKDIR /app
-
-# Copy pom.xml and download dependencies first (for caching)
+# Copy pom.xml and run dependencies
 COPY . .
 RUN mvn dependency:go-offline -B
 
-# Copy the rest of the source code and build the WAR
-#COPY . .
+# Package the code
 RUN mvn clean package -DskipTests
 
 # ---------- Stage 2: Deploy the WAR to Tomcat ----------
 FROM tomcat:9
-
-# Remove default ROOT app (optional)
-RUN rm -rf /usr/local/tomcat/webapps/ROOT
 
 # Copy the WAR file from the build stage
 COPY --from=builder /target/addressbook.war /usr/local/tomcat/webapps/addressbook.war
